@@ -1,0 +1,261 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+const int no_flights = 5;
+const int times_perflight = 2;
+const int flight_rows = 9;
+const int flight_col = 6;
+const string flights_times[no_flights][times_perflight] = {
+        {"7.00",  "9.30"},
+        {"9.00",  "11.30"},
+        {"11.00", "13.30"},
+        {"13.00", "15.30"},
+        {"15.00", "17.30"}
+};
+
+struct Seats{
+    char flightRows[flight_rows] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'};
+    int flightCol[flight_col] = {1, 2, 3, 4, 5, 6};
+    string flight_seats[5][9][6];
+};
+
+
+//Returns true or false whether the user flight input is within scope.
+bool validate_flightno(int temp_flightno){
+
+    if (temp_flightno >= 1 && temp_flightno <= 5){
+        return true;
+    }
+    else {
+        return false;
+    }
+
+}
+
+//Displays flight times, get user input and call input validate function.
+int displayFlights(const string flights[][2]){
+
+    int flight_no;
+
+    cout << "The available travel times for flights are:" << endl;
+    cout << "\tDepart " << "\t\tArrive" << endl;
+    for (int i = 0; i < 5; i++){
+
+        cout << i + 1 << ". ";
+        for (int j = 0; j < 2; j++) {
+
+            cout << "\t" << flights[i][j]  << "\t";
+        }
+        cout << endl;
+    }
+
+    cout << "Choose the time by entering the option number from the displayed list:" << endl;
+    cin >> flight_no;
+    validate_flightno(flight_no);
+
+    //Will continue asking for a flight number until it gets one in scope.
+    while (!validate_flightno(flight_no)){
+        cout << "Incorrect option! Please choose from 1-5." << endl;
+        cin >> flight_no;
+        validate_flightno(flight_no);
+    }
+
+    if (validate_flightno(flight_no)){
+        return flight_no - 1;
+    }
+}
+
+//Displays the seats
+void displaySeats(Seats & currentfl_seats, int flightno, const string flights_times[][2]) {
+
+    cout << "The available seats for " << flights_times[flightno][0] << " are as follows:" << endl;
+    cout << "First Class R1920" << endl;
+    for(int i = 0; i < 1; i++){
+        for(int j = 0; j < flight_rows; j++){
+            if (j <= 7){
+                if (j == 4){
+                    cout << "Economy Class R1600" << endl;
+                }
+                for(int x = 0; x < 3; x++){
+                    cout << "|" << currentfl_seats.flight_seats[flightno][j][x];
+                    if (x == 2){
+                        cout << "|";
+                    }
+                }
+
+                cout << "----";
+
+                for(int x = 3; x < 6; x++){
+                    cout << "|" << currentfl_seats.flight_seats[flightno][j][x];
+                    if (x == 5){
+                        cout << "|" << endl;
+                    }
+                }
+            }
+            else {
+                for(int x = 0; x < 2; x++){
+                    cout << "|" << currentfl_seats.flight_seats[flightno][j][x];
+                    if (x == 1){
+                        cout << "|" << endl;
+                    }
+                }
+            }
+        }
+    }
+}
+
+//Calculates the seat price and returns a value
+int seatPrice(string seat_number, Seats & currentfl_seats, int current_flightno){
+
+    int economy_class = 1600;
+    int first_class = 1600 * 120/100;
+
+    for (int i = 0; i < flight_rows; i++) {
+        for (int j = 0; j < flight_col; j++) {
+            if (currentfl_seats.flight_seats[current_flightno][i][j] == seat_number && i <= 3) {
+                currentfl_seats.flight_seats[current_flightno][i][j] = "**";
+                return first_class;
+            }
+            if (currentfl_seats.flight_seats[current_flightno][i][j] == seat_number && i > 3) {
+                currentfl_seats.flight_seats[current_flightno][i][j] = "**";
+                return economy_class;
+            }
+        }
+    }
+    return true;
+}
+
+//Check if the seat is available and counts the total bookings for specific flight
+bool seatAvailability(string seatnumber, Seats & currentfl_seats, int current_flightno, int total_bookings[][1]) {
+
+    for (int i = 0; i < flight_rows; i++) {
+        for (int j = 0; j < flight_col; j++) {
+            if (currentfl_seats.flight_seats[current_flightno][i][j] == seatnumber) {
+                int total = total_bookings[current_flightno][0];
+                total++;
+                total_bookings[current_flightno][0] = total;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+//Displays the ticket for appropriate flight and seat
+void displayTicket(string name, int flight_no, const string flights_times[][2], string seat, Seats & currentfl_seats){
+
+    int current_ticketprice = seatPrice(seat, currentfl_seats, flight_no);
+
+    string travel_class;
+
+    switch (current_ticketprice){
+        case 1600:
+            travel_class = "Economy Class";
+            break;
+
+        case 1920:
+            travel_class = "First Class";
+            break;
+    }
+
+    cout << "*************************" << endl;
+    cout << "Travel ticket for FLIGHT" << endl;
+    cout << "*************************" << endl;
+    cout << "Name\t\t:  " << name << "\tTravel Ticket class  :  " << travel_class << endl;
+    cout << "\t\t\t\t\t" << "Seat No\t\t\t:  " << seat << endl;
+    cout << "Departure\t:  " << "Johannesburg\t\t" << "Departure Time\t\t:  " << flights_times[flight_no][0] << endl;
+    cout << "Destination\t:  " << "Cape Town\t\t" << "Arrival Time\t\t:  " << flights_times[flight_no][1] << endl;
+    cout << "*************************" << endl;
+    cout << "Amount: R" << current_ticketprice << " Thank you for booking with COS1511. Your travel agent for queries is Stiaan Wolfaardt." << endl;
+
+}
+
+//Creates the empty seat array
+void createSeatArray(Seats & currentfl_seats){
+
+    int flight_no = 0;
+    for(flight_no; flight_no < 5; flight_no++) {
+        for (int i = 0; i < flight_rows; i++) {
+            for (int j = 0; j < flight_col; j++) {
+                if (i == 8) {
+                    for (int j = 0; j < 2; j++) {
+                        string full_seatno = "";
+                        full_seatno += currentfl_seats.flightRows[i];
+                        full_seatno += to_string(currentfl_seats.flightCol[j]);
+                        currentfl_seats.flight_seats[flight_no][i][j] = full_seatno;
+                    }
+                } else {
+                    for (int j = 0; j < flight_col; j++) {
+                        string full_seatno = "";
+                        full_seatno += currentfl_seats.flightRows[i];
+                        full_seatno += to_string(currentfl_seats.flightCol[j]);
+                        currentfl_seats.flight_seats[flight_no][i][j] = full_seatno;
+                    }
+                }
+            }
+        }
+    }
+}
+
+int main( ) {
+
+    string psgr_name, seat_no;
+    string another_booking = "Y";
+    int total_bookings[5][1] = {{0},{0},{0},{0},{0}};
+    bool booking_made = false;
+
+    Seats currentflight_seats;
+
+    createSeatArray(currentflight_seats);
+
+    while (another_booking == "Y" || another_booking == "y") {
+
+        cout << "Welcome to COS1511 Flight Booking System\n" << endl;
+        cout << "Enter your Full Name" << endl;
+
+        getline(cin, psgr_name);
+
+        //Ensure user enters name every loop.
+        if (booking_made == true){
+            getline(cin, psgr_name);
+        }
+
+        int current_flightno = displayFlights(flights_times);
+        displaySeats(currentflight_seats, current_flightno, flights_times);
+
+        cout << "Please key in a seat number to choose a seat(eg: A2)" << endl;
+        cin >> seat_no;
+
+        bool available = seatAvailability(seat_no, currentflight_seats, current_flightno, total_bookings);
+
+        if (available == true) {
+            displayTicket(psgr_name, current_flightno, flights_times, seat_no, currentflight_seats);
+            booking_made = true;
+        }
+
+        //Logic for seat availability loop
+        if (available == false){
+            do {
+                cout << "Sorry, the seat is taken. Please choose a seat that is available." << endl;
+                cin >> seat_no;
+                bool available_now = seatAvailability(seat_no, currentflight_seats, current_flightno, total_bookings);
+                available = available_now;
+
+                if (available == true) {
+                    displayTicket(psgr_name, current_flightno, flights_times, seat_no, currentflight_seats);
+                    booking_made = true;
+                }
+            }
+            while (available == false);
+        }
+        cout << "Do you want to make another booking(Y/N)?" << endl;
+        cin >> another_booking;
+    }
+
+    //Displays the total number of bookings made for each flight
+    for (int i = 0; i < 5; i++) {
+        cout << "Number of bookings made for " << flights_times[i][0] << ": " << total_bookings[i][0] << endl;
+    }
+}
